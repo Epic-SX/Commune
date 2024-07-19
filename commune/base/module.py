@@ -2,7 +2,7 @@ from __future__ import annotations
 from commune.utils import get_object, dict_any, dict_put, dict_get, dict_has, dict_pop, deep2flat, Timer, dict_override, get_functions, get_function_schema, kill_pid
 import datetime
 
-import streamlit as st
+
 import os
 import subprocess, shlex
 import ray
@@ -22,7 +22,6 @@ import psutil
 import gradio
 import asyncio
 from ray.experimental.state.api import list_actors, list_objects, list_tasks
-import streamlit as st
 import nest_asyncio
 from typing import *
 from glob import glob
@@ -285,15 +284,15 @@ class Module:
     def launch(cls, module:str=None, fn:str=None ,kwargs:dict={}, args:list=[], actor:Union[bool, dict]=False, ray_init:dict={}, **additional_kwargs):
         
 
+        # ensure the ray cluster
         cls.ray_init(ray_init)
-
-
-        if module == None:
-            module = cls.get_module_path()
 
         if cls.is_class(module):
             module_class = module
         elif isinstance(module, str):
+            module_class = cls.import_object(module)
+        elif module == None:
+            module = cls.get_module_path()
             module_class = cls.import_object(module)
         else:
             raise NotImplementedError(f'Type ({type(module)}) for module is not implemented')
@@ -609,12 +608,14 @@ class Module:
 
     @classmethod
     def streamlit(cls):
+        import streamlit as st
         st.write(f'HELLO from {cls.__name__}')
         st.write(cls)
 
 
     @classmethod
     def describe(cls, obj=None, streamlit=False, sidebar=True,**kwargs):
+        import streamlit as st
         if obj == None:
             obj = cls
 
